@@ -84,4 +84,50 @@ class AuthorizationService implements AuthorizationServiceInterface
 
         throw new AuthorizationException("Annulation du rendez-vous refusée.");
     }
+
+    public function assertCanUpdateRdvStatus(UserDTO $user, string $rdvId): RdvDTO
+    {
+        $rdv = $this->rdvService->consulterRdv($rdvId);
+        $role = UserRole::toString($user->role);
+
+        if ($role === 'admin') {
+            return $rdv;
+        }
+
+        if ($role === 'praticien' && $rdv->praticien_id === $user->id) {
+            return $rdv;
+        }
+
+        throw new AuthorizationException('Modification du statut refusée.');
+    }
+
+    public function assertCanViewPatientHistory(UserDTO $user, string $patientId): void
+    {
+        $role = UserRole::toString($user->role);
+
+        if ($role === 'admin') {
+            return;
+        }
+
+        if ($role === 'patient' && $user->id === $patientId) {
+            return;
+        }
+
+        throw new AuthorizationException('Consultation de l\'historique patient refusée.');
+    }
+
+    public function assertCanManageIndisponibilite(UserDTO $user, string $praticienId): void
+    {
+        $role = UserRole::toString($user->role);
+
+        if ($role === 'admin') {
+            return;
+        }
+
+        if ($role === 'praticien' && $user->id === $praticienId) {
+            return;
+        }
+
+        throw new AuthorizationException('Gestion des indisponibilités refusée pour ce praticien.');
+    }
 }

@@ -17,6 +17,12 @@ use toubilib\core\application\usecases\AuthorizationServiceInterface;
 use toubilib\core\application\usecases\AuthorizationService;
 use toubilib\core\application\usecases\ServiceAuthInterface;
 use toubilib\core\application\usecases\ServiceAuth;
+use toubilib\core\application\ports\IndisponibiliteRepositoryInterface;
+use toubilib\infra\repositories\PDOIndisponibiliteRepository;
+use toubilib\core\application\usecases\ServiceIndisponibiliteInterface;
+use toubilib\core\application\usecases\ServiceIndisponibilite;
+use toubilib\core\application\usecases\ServicePatientInterface;
+use toubilib\core\application\usecases\ServicePatient;
 
 return [
     // PDO connection factory
@@ -67,7 +73,8 @@ return [
         return new ServiceRDV(
             $c->get(RdvRepositoryInterface::class),
             $c->get(PraticienRepositoryInterface::class),
-            $c->get(PatientRepositoryInterface::class)
+            $c->get(PatientRepositoryInterface::class),
+            $c->get(IndisponibiliteRepositoryInterface::class)
         );
     },
 
@@ -94,5 +101,26 @@ return [
     },
     AuthorizationServiceInterface::class => function (ContainerInterface $c): AuthorizationServiceInterface {
         return new AuthorizationService($c->get(ServiceRDVInterface::class));
+    },
+
+    // Indisponibilités
+    IndisponibiliteRepositoryInterface::class => function (ContainerInterface $c): IndisponibiliteRepositoryInterface {
+        return new PDOIndisponibiliteRepository($c->get(PDO::class));
+    },
+    ServiceIndisponibiliteInterface::class => function (ContainerInterface $c): ServiceIndisponibiliteInterface {
+        return new ServiceIndisponibilite(
+            $c->get(IndisponibiliteRepositoryInterface::class),
+            $c->get(PraticienRepositoryInterface::class),
+            $c->get(RdvRepositoryInterface::class)
+        );
+    },
+
+    // Patients (inscription + historique)
+    ServicePatientInterface::class => function (ContainerInterface $c): ServicePatientInterface {
+        return new ServicePatient(
+            $c->get(PatientRepositoryInterface::class),
+            $c->get(UserRepositoryInterface::class),
+            $c->get(RdvRepositoryInterface::class)
+        );
     },
 ];

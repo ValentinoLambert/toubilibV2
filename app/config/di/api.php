@@ -8,6 +8,11 @@ use toubilib\core\application\usecases\ServicePraticienInterface;
 use toubilib\api\actions\praticien\AfficherPraticienAction;
 use toubilib\api\actions\praticien\ListerCreneauxOccupesAction;
 use toubilib\api\actions\praticien\ListerAgendaAction;
+use toubilib\api\actions\praticien\ListerIndisponibilitesAction;
+use toubilib\api\actions\praticien\CreerIndisponibiliteAction;
+use toubilib\api\actions\praticien\SupprimerIndisponibiliteAction;
+use toubilib\api\actions\patient\ListerHistoriquePatientAction;
+use toubilib\api\actions\patient\InscrirePatientAction;
 use toubilib\api\actions\rdv\ConsulterRdvAction;
 use toubilib\api\actions\rdv\CreerRdvAction;
 use toubilib\api\actions\rdv\AnnulerRdvAction;
@@ -16,8 +21,12 @@ use toubilib\api\middlewares\AuthenticatedMiddleware;
 use toubilib\api\middlewares\AuthorizationMiddleware;
 use toubilib\api\middlewares\CorsMiddleware;
 use toubilib\api\middlewares\CreateRendezVousMiddleware;
+use toubilib\api\middlewares\CreateIndisponibiliteMiddleware;
+use toubilib\api\middlewares\InscriptionPatientMiddleware;
 use toubilib\api\middlewares\OptionalAuthMiddleware;
 use toubilib\core\application\usecases\ServiceRDVInterface;
+use toubilib\core\application\usecases\ServicePatientInterface;
+use toubilib\core\application\usecases\ServiceIndisponibiliteInterface;
 use toubilib\api\provider\AuthProviderInterface;
 use toubilib\api\provider\AuthProvider;
 use toubilib\api\security\JwtManagerInterface;
@@ -64,6 +73,30 @@ return [
     },
     CreateRendezVousMiddleware::class => function (): CreateRendezVousMiddleware {
         return new CreateRendezVousMiddleware();
+    },
+    CreateIndisponibiliteMiddleware::class => function (): CreateIndisponibiliteMiddleware {
+        return new CreateIndisponibiliteMiddleware();
+    },
+    InscriptionPatientMiddleware::class => function (): InscriptionPatientMiddleware {
+        return new InscriptionPatientMiddleware();
+    },
+    ListerHistoriquePatientAction::class => function (ContainerInterface $c): ListerHistoriquePatientAction {
+        return new ListerHistoriquePatientAction($c->get(ServicePatientInterface::class));
+    },
+    InscrirePatientAction::class => function (ContainerInterface $c): InscrirePatientAction {
+        return new InscrirePatientAction(
+            $c->get(ServicePatientInterface::class),
+            $c->get(AuthProviderInterface::class)
+        );
+    },
+    ListerIndisponibilitesAction::class => function (ContainerInterface $c): ListerIndisponibilitesAction {
+        return new ListerIndisponibilitesAction($c->get(ServiceIndisponibiliteInterface::class));
+    },
+    CreerIndisponibiliteAction::class => function (ContainerInterface $c): CreerIndisponibiliteAction {
+        return new CreerIndisponibiliteAction($c->get(ServiceIndisponibiliteInterface::class));
+    },
+    SupprimerIndisponibiliteAction::class => function (ContainerInterface $c): SupprimerIndisponibiliteAction {
+        return new SupprimerIndisponibiliteAction($c->get(ServiceIndisponibiliteInterface::class));
     },
     JwtManagerInterface::class => function (ContainerInterface $c): JwtManagerInterface {
         return new JwtManager(

@@ -7,6 +7,11 @@ use toubilib\api\actions\praticien\ListerPraticiensAction;
 use toubilib\api\actions\praticien\AfficherPraticienAction;
 use toubilib\api\actions\praticien\ListerCreneauxOccupesAction;
 use toubilib\api\actions\praticien\ListerAgendaAction;
+use toubilib\api\actions\praticien\ListerIndisponibilitesAction;
+use toubilib\api\actions\praticien\CreerIndisponibiliteAction;
+use toubilib\api\actions\praticien\SupprimerIndisponibiliteAction;
+use toubilib\api\actions\patient\ListerHistoriquePatientAction;
+use toubilib\api\actions\patient\InscrirePatientAction;
 use toubilib\api\actions\rdv\ConsulterRdvAction;
 use toubilib\api\actions\rdv\CreerRdvAction;
 use toubilib\api\actions\rdv\AnnulerRdvAction;
@@ -14,6 +19,8 @@ use toubilib\api\actions\rdv\ModifierStatutRdvAction;
 use toubilib\api\middlewares\AuthenticatedMiddleware;
 use toubilib\api\middlewares\AuthorizationMiddleware;
 use toubilib\api\middlewares\CreateRendezVousMiddleware;
+use toubilib\api\middlewares\CreateIndisponibiliteMiddleware;
+use toubilib\api\middlewares\InscriptionPatientMiddleware;
 use toubilib\api\middlewares\OptionalAuthMiddleware;
 use toubilib\api\middlewares\RequireRoleMiddleware;
 
@@ -22,6 +29,16 @@ return function( \Slim\App $app):\Slim\App {
         ->setName('auth.login');
     $app->get('/auth/me', MeAction::class)
         ->setName('auth.me')
+        ->add(AuthenticatedMiddleware::class);
+
+    $app->post('/patients', InscrirePatientAction::class)
+        ->setName('patients.inscrire')
+        ->add(InscriptionPatientMiddleware::class);
+
+    $app->get('/patients/{id}/historique', ListerHistoriquePatientAction::class)
+        ->setName('patients.historique')
+        ->add(AuthorizationMiddleware::class)
+        ->add(new RequireRoleMiddleware(['patient', 'admin']))
         ->add(AuthenticatedMiddleware::class);
 
     $app->get('/praticiens', ListerPraticiensAction::class)
@@ -39,6 +56,25 @@ return function( \Slim\App $app):\Slim\App {
     $app->get('/praticiens/{id}/agenda', ListerAgendaAction::class)
         ->setName('praticiens.agenda')
         ->add(AuthorizationMiddleware::class)
+        ->add(AuthenticatedMiddleware::class);
+
+    $app->get('/praticiens/{id}/indisponibilites', ListerIndisponibilitesAction::class)
+        ->setName('praticiens.indisponibilites.list')
+        ->add(AuthorizationMiddleware::class)
+        ->add(new RequireRoleMiddleware(['admin', 'praticien']))
+        ->add(AuthenticatedMiddleware::class);
+
+    $app->post('/praticiens/{id}/indisponibilites', CreerIndisponibiliteAction::class)
+        ->setName('praticiens.indisponibilites.create')
+        ->add(AuthorizationMiddleware::class)
+        ->add(new RequireRoleMiddleware(['admin', 'praticien']))
+        ->add(AuthenticatedMiddleware::class)
+        ->add(CreateIndisponibiliteMiddleware::class);
+
+    $app->delete('/praticiens/{id}/indisponibilites/{indispoId}', SupprimerIndisponibiliteAction::class)
+        ->setName('praticiens.indisponibilites.delete')
+        ->add(AuthorizationMiddleware::class)
+        ->add(new RequireRoleMiddleware(['admin', 'praticien']))
         ->add(AuthenticatedMiddleware::class);
 
     $app->get('/rdv/{id}', ConsulterRdvAction::class)
@@ -60,6 +96,7 @@ return function( \Slim\App $app):\Slim\App {
 
     $app->patch('/rdv/{id}', ModifierStatutRdvAction::class)
         ->setName('rdv.update_status')
+        ->add(AuthorizationMiddleware::class)
         ->add(new RequireRoleMiddleware(['admin', 'praticien']))
         ->add(AuthenticatedMiddleware::class);
 

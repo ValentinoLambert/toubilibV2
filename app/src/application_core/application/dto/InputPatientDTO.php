@@ -1,34 +1,34 @@
 <?php
 
-namespace toubilib\core\domain\entities\patient;
+namespace toubilib\core\application\dto;
 
-class Patient
+class InputPatientDTO
 {
-    public string $id;
     public string $nom;
     public string $prenom;
-    public ?string $email;
-    public ?string $telephone;
+    public string $email;
+    public string $password;
+    public string $telephone;
     public ?string $date_naissance;
     public ?string $adresse;
     public ?string $code_postal;
     public ?string $ville;
 
     public function __construct(
-        string $id,
         string $nom,
         string $prenom,
-        ?string $email,
-        ?string $telephone = null,
+        string $email,
+        string $password,
+        string $telephone,
         ?string $date_naissance = null,
         ?string $adresse = null,
         ?string $code_postal = null,
         ?string $ville = null
     ) {
-        $this->id = $id;
         $this->nom = $nom;
         $this->prenom = $prenom;
         $this->email = $email;
+        $this->password = $password;
         $this->telephone = $telephone;
         $this->date_naissance = $date_naissance;
         $this->adresse = $adresse;

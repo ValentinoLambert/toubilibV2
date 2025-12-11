@@ -54,6 +54,17 @@ class AuthorizationMiddleware implements MiddlewareInterface
                 case 'rdv.cancel':
                     $this->authorizationService->assertCanCancelRdv($user, $route->getArgument('id'));
                     break;
+                case 'rdv.update_status':
+                    $this->authorizationService->assertCanUpdateRdvStatus($user, $route->getArgument('id'));
+                    break;
+                case 'patients.historique':
+                    $this->authorizationService->assertCanViewPatientHistory($user, $route->getArgument('id'));
+                    break;
+                case 'praticiens.indisponibilites.list':
+                case 'praticiens.indisponibilites.create':
+                case 'praticiens.indisponibilites.delete':
+                    $this->authorizationService->assertCanManageIndisponibilite($user, $route->getArgument('id'));
+                    break;
                 default:
                     break;
             }

@@ -27,4 +27,10 @@ interface RdvRepositoryInterface
      * @return Rdv[]
      */
     public function findOverlapping(string $praticienId, string $de, string $a): array;
+
+    /**
+     * Liste les rendez-vous d'un patient (du plus récent au plus ancien).
+     * @return Rdv[]
+     */
+    public function findByPatient(string $patientId): array;
 }

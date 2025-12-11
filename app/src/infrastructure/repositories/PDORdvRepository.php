@@ -40,6 +40,17 @@ class PDORdvRepository implements RdvRepositoryInterface
         return array_map(fn($row) => $this->mapRowToRdv($row), $rows);
     }
 
+    public function findByPatient(string $patientId): array
+    {
+        $sql = $this->baseSelect()
+            . ' WHERE patient_id = :pid'
+            . ' ORDER BY date_heure_debut DESC';
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([':pid' => $patientId]);
+        $rows = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        return array_map(fn($row) => $this->mapRowToRdv($row), $rows);
+    }
+
     public function findById(string $id): ?Rdv
     {
         $sql = $this->baseSelect() . ' WHERE id = :id LIMIT 1';
@@ -104,4 +115,3 @@ class PDORdvRepository implements RdvRepositoryInterface
         );
     }
 }
-

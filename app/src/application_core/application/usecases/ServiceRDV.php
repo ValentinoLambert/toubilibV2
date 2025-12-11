@@ -12,6 +12,7 @@ use toubilib\core\application\dto\RdvDTO;
 use toubilib\core\application\exceptions\ResourceNotFoundException;
 use toubilib\core\application\exceptions\ValidationException;
 use toubilib\core\application\ports\PatientRepositoryInterface;
+use toubilib\core\application\ports\IndisponibiliteRepositoryInterface;
 use toubilib\core\application\ports\PraticienRepositoryInterface;
 use toubilib\core\application\ports\RdvRepositoryInterface;
 use toubilib\core\domain\entities\praticien\MotifVisite;
@@ -24,15 +25,18 @@ class ServiceRDV implements ServiceRDVInterface
     private RdvRepositoryInterface $rdvRepository;
     private PraticienRepositoryInterface $praticienRepository;
     private PatientRepositoryInterface $patientRepository;
+    private IndisponibiliteRepositoryInterface $indisponibiliteRepository;
 
     public function __construct(
         RdvRepositoryInterface $rdvRepository,
         PraticienRepositoryInterface $praticienRepository,
-        PatientRepositoryInterface $patientRepository
+        PatientRepositoryInterface $patientRepository,
+        IndisponibiliteRepositoryInterface $indisponibiliteRepository
     ) {
         $this->rdvRepository = $rdvRepository;
         $this->praticienRepository = $praticienRepository;
         $this->patientRepository = $patientRepository;
+        $this->indisponibiliteRepository = $indisponibiliteRepository;
     }
 
     public function listerCreneauxOccupes(string $praticienId, string $dateDebut, string $dateFin): array
@@ -152,6 +156,9 @@ class ServiceRDV implements ServiceRDVInterface
         }
 
         try {
+            if ($rdv->getDateHeureDebut() > new DateTimeImmutable('now')) {
+                throw new ValidationException('Impossible de modifier le statut d\'un rendez-vous futur.');
+            }
             $rdv->markHonored();
         } catch (DomainException $exception) {
             throw new ValidationException($exception->getMessage(), previous: $exception);
@@ -170,6 +177,9 @@ class ServiceRDV implements ServiceRDVInterface
         }
 
         try {
+            if ($rdv->getDateHeureDebut() > new DateTimeImmutable('now')) {
+                throw new ValidationException('Impossible de modifier le statut d\'un rendez-vous futur.');
+            }
             $rdv->markNoShow();
         } catch (DomainException $exception) {
             throw new ValidationException($exception->getMessage(), previous: $exception);
@@ -245,6 +255,15 @@ class ServiceRDV implements ServiceRDVInterface
             if (!$rdv->isCancelled()) {
                 throw new ValidationException('Le praticien est déjà occupé sur ce créneau.');
             }
+        }
+
+        $indispos = $this->indisponibiliteRepository->findOverlapping(
+            $praticienId,
+            $debut->format('Y-m-d H:i:s'),
+            $fin->format('Y-m-d H:i:s')
+        );
+        if (count($indispos) > 0) {
+            throw new ValidationException('Le praticien est indisponible sur ce créneau.');
         }
     }
 

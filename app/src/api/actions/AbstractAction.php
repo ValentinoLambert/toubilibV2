@@ -6,6 +6,8 @@ namespace toubilib\api\actions;
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use toubilib\api\middlewares\AuthenticatedMiddleware;
+use toubilib\core\application\dto\IndisponibiliteDTO;
+use toubilib\core\application\dto\PatientDTO;
 use toubilib\core\application\dto\PraticienDTO;
 use toubilib\core\application\dto\RdvDTO;
 use toubilib\core\application\dto\UserDTO;
@@ -72,6 +74,47 @@ abstract class AbstractAction
             'type' => 'praticien',
             'attributes' => $data,
             '_links' => $links,
+        ];
+    }
+
+    protected function patientResource(Request $request, PatientDTO $dto): array
+    {
+        $data = $dto->jsonSerialize();
+        $id = $data['id'];
+        unset($data['id']);
+
+        return [
+            'id' => $id,
+            'type' => 'patient',
+            'attributes' => $data,
+            '_links' => [
+                'self' => ['href' => '/patients/' . $id, 'method' => 'GET'],
+                'historique' => ['href' => '/patients/' . $id . '/historique', 'method' => 'GET'],
+            ],
+        ];
+    }
+
+    protected function indisponibiliteResource(Request $request, IndisponibiliteDTO $dto): array
+    {
+        $data = $dto->jsonSerialize();
+        $id = $data['id'];
+        unset($data['id']);
+
+        return [
+            'id' => $id,
+            'type' => 'indisponibilite',
+            'attributes' => $data,
+            '_links' => [
+                'self' => [
+                    'href' => '/praticiens/' . $dto->praticien_id . '/indisponibilites/' . $id,
+                    'method' => 'GET',
+                ],
+                'praticien' => ['href' => '/praticiens/' . $dto->praticien_id, 'method' => 'GET'],
+                'supprimer' => [
+                    'href' => '/praticiens/' . $dto->praticien_id . '/indisponibilites/' . $id,
+                    'method' => 'DELETE',
+                ],
+            ],
         ];
     }
 

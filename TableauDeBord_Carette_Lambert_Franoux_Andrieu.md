@@ -13,24 +13,29 @@ Robin
   - Refonte des autorisations (middleware + `AuthorizationService`) pour couvrir les politiques du sujet
   - Industrialisation CORS (middleware configurable) et harmonisation des réponses d’erreur
   - Coordination tests Bruno, scénarios manuels et mise à jour de la documentation
+  - Extension fonctionnalités 10→13 : cycle de vie RDV (honoré/absent), inscription patient, historique patient, indisponibilités praticien, sécurisation des routes
+  - Ajustements HATEOAS et mise à jour du tableau de bord / specs
 
 Valentino
   - Refonte repository `PDOPraticienRepository` + mapping entités/DTO praticiens
   - Actions Slim pour la liste/détail praticiens + endpoints agenda/créneaux (partie présentation)
   - Participation aux DTO praticien (base + détail) et revue des conventions REST/HATEOAS
   - Contribution au tableau de suivi et présence sur les revues de code (validation Respect\Validation)
+  - Support sur l’API indisponibilités (contrats, relecture routes) et ajustements front Bruno
 
 Noé
   - Repository `PDORdvRepository` : requêtes Postgres, détection des chevauchements, persistance
   - Optimisation SQL et scripts fixtures ; validation des jeux de données multi-bases
   - Support sur la couche application RDV (conversion entité→DTO) et vérification des tests Bruno
   - Préparation des environnements Docker (volumes BDD, variables d’env) et contrôle de cohérence
+  - Ajout schéma/table `indisponibilite`, vérification overlap RDV/indispos et fixtures associées
 
 Paul
   - Modélisation domaine (`Rdv`, `Praticien`, structure, motifs, moyens de paiement)
   - DTO application (`RdvDTO`, `PraticienDTO`, `PraticienDetailDTO`, etc.) et premières routes REST
   - Scaffold API Slim (routes initiales, gestion des erreurs, base du middleware RequireRole)
   - Documentation sur l’architecture hexagonale + aide à la configuration Docker Compose
+  - Relectures sur l’inscription patient et cohérence des DTO (patient/rendez-vous)
 
 2. Fonctionnalités livrées (TD1 → TD5)
 ---------------------------------------
@@ -80,3 +85,10 @@ Identifiants utiles :
 Statut : fonctionnalités 1 → 8 du sujet détaillé couvertes, avec conformité aux politiques d’autorisation et aux principes des cours (JWT externalisé, CORS, middlewares).  
 Tests : scénarios Bruno/HTTPie + contrôles manuels post refonte Auth/JWT.  
 Dernier commit : `feat: externaliser la gestion JWT et sécuriser la politique rendez-vous`.
+
+5. Avancement TD6 (fonctionnalités 9 → 13)
+-------------------------------------------
+- Cycle de vie RDV (honoré / non honoré) : PATCH `/rdv/{id}` avec autorisation et refus pour les RDV futurs.
+- Historique patient : GET `/patients/{id}/historique` (patient propriétaire ou admin), ordre antichronologique.
+- Inscription patient : POST `/patients` (validation, création utilisateur + patient, auto-login JWT).
+- Indisponibilités praticien : GET/POST/DELETE `/praticiens/{id}/indisponibilites` avec contrôle de chevauchement RDV/indispo et autorisation (praticien propriétaire ou admin).

@@ -76,5 +76,15 @@ CREATE TABLE "public"."structure" (
     "telephone" character varying(24)
 ) WITH (oids = false);
 
+DROP TABLE IF EXISTS "indisponibilite";
+CREATE TABLE "public"."indisponibilite" (
+    "id" uuid NOT NULL,
+    "praticien_id" uuid NOT NULL,
+    "date_debut" timestamp NOT NULL,
+    "date_fin" timestamp NOT NULL,
+    "motif" character varying(255),
+    CONSTRAINT "indisponibilite_pkey" PRIMARY KEY ("id")
+) WITH (oids = false);
+
 
 -- 2025-06-30 12:31:32.033009+00
