@@ -2,10 +2,8 @@
 declare(strict_types=1);
 
 use Slim\App;
-use toubilib\gateway\application\actions\GetPraticiensAction;
-use toubilib\gateway\application\actions\GetPraticienAction;
+use toubilib\gateway\application\actions\ProxyAction;
 
 return function (App $app) {
-    $app->get('/praticiens', GetPraticiensAction::class);
-    $app->get('/praticiens/{id}', GetPraticienAction::class);
+    $app->get('/{routes:.+}', ProxyAction::class);
 };

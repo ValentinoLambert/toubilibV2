@@ -9,7 +9,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
 use Slim\Exception\HttpNotFoundException;
 
-class GetPraticienAction
+class ProxyAction
 {
     private Client $client;
 
@@ -18,19 +18,19 @@ class GetPraticienAction
         $this->client = $client;
     }
 
-    public function __invoke(Request $request, Response $response, array $args): Response
+    public function __invoke(Request $request, Response $response): Response
     {
-        $id = $args['id'];
+        $path = $request->getUri()->getPath();
         
         try {
-            $responseToubilib = $this->client->get("/praticiens/{$id}");
+            $responseToubilib = $this->client->get($path);
             $response->getBody()->write($responseToubilib->getBody()->getContents());
             return $response
                 ->withStatus($responseToubilib->getStatusCode())
                 ->withHeader('Content-Type', 'application/json');
         } catch (ClientException $e) {
             if ($e->getResponse()->getStatusCode() === 404) {
-                throw new HttpNotFoundException($request, "Praticien {$id} introuvable");
+                throw new HttpNotFoundException($request);
             }
             throw $e;
         }
