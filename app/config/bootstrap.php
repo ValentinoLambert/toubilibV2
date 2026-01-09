@@ -39,7 +39,7 @@ $app->options('/{routes:.+}', function (ServerRequestInterface $request, Respons
     return $corsMiddleware->handlePreflight($request, $response);
 });
 
-$app->add($corsMiddleware);
+// $app->add($corsMiddleware);
 
 $app->addBodyParsingMiddleware();
 $app->addRoutingMiddleware();
