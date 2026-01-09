@@ -9,11 +9,12 @@ use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface as Handler;
 use Respect\Validation\Exceptions\NestedValidationException;
 use Respect\Validation\Validator;
+use toubilib\core\application\dto\InputRendezVousDTO;
 use toubilib\core\application\exceptions\ValidationException;
 
 class CreateRendezVousMiddleware implements MiddlewareInterface
 {
-    public const ATTRIBUTE_PAYLOAD = 'rdv.payload';
+    public const ATTRIBUTE_DTO = 'rdv.input_dto';
 
     public function process(Request $request, Handler $handler): Response
     {
@@ -22,17 +23,17 @@ class CreateRendezVousMiddleware implements MiddlewareInterface
             throw new ValidationException('Corps de requête JSON invalide.');
         }
 
-        $payload = $this->validate($data);
-        $request = $request->withAttribute(self::ATTRIBUTE_PAYLOAD, $payload);
+        $dto = $this->buildDto($data);
+        $request = $request->withAttribute(self::ATTRIBUTE_DTO, $dto);
 
         return $handler->handle($request);
     }
 
     /**
      * @param array<string, mixed> $data
-     * @return array{praticien_id: string, patient_id: string, motif_id: string, date_heure_debut: string, duree: int}
+     * @return InputRendezVousDTO
      */
-    private function validate(array $data): array
+    private function buildDto(array $data): InputRendezVousDTO
     {
         $schema = Validator::arrayType()
             ->key('praticien_id', Validator::uuid())
@@ -47,12 +48,12 @@ class CreateRendezVousMiddleware implements MiddlewareInterface
             throw new ValidationException($exception->getFullMessage(), previous: $exception);
         }
 
-        return [
-            'praticien_id' => trim((string)$data['praticien_id']),
-            'patient_id' => trim((string)$data['patient_id']),
-            'motif_id' => trim((string)$data['motif_id']),
-            'date_heure_debut' => (string)$data['date_heure_debut'],
-            'duree' => (int)$data['duree'],
-        ];
+        return new InputRendezVousDTO(
+            trim((string)$data['praticien_id']),
+            trim((string)$data['patient_id']),
+            (string)$data['date_heure_debut'],
+            trim((string)$data['motif_id']),
+            (int)$data['duree']
+        );
     }
 }

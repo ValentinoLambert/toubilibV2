@@ -9,11 +9,12 @@ use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface as Handler;
 use Respect\Validation\Exceptions\NestedValidationException;
 use Respect\Validation\Validator;
+use toubilib\core\application\dto\InputPatientDTO;
 use toubilib\core\application\exceptions\ValidationException;
 
 class InscriptionPatientMiddleware implements MiddlewareInterface
 {
-    public const ATTRIBUTE_PAYLOAD = 'patient.payload';
+    public const ATTRIBUTE_DTO = 'patient.input_dto';
 
     public function process(Request $request, Handler $handler): Response
     {
@@ -22,17 +23,17 @@ class InscriptionPatientMiddleware implements MiddlewareInterface
             throw new ValidationException('Corps de requête JSON invalide.');
         }
 
-        $payload = $this->validate($data);
-        $request = $request->withAttribute(self::ATTRIBUTE_PAYLOAD, $payload);
+        $dto = $this->buildDto($data);
+        $request = $request->withAttribute(self::ATTRIBUTE_DTO, $dto);
 
         return $handler->handle($request);
     }
 
     /**
      * @param array<string, mixed> $data
-     * @return array<string, mixed>
+     * @return InputPatientDTO
      */
-    private function validate(array $data): array
+    private function buildDto(array $data): InputPatientDTO
     {
         $schema = Validator::arrayType()
             ->key('nom', Validator::stringType()->length(2, null))
@@ -51,16 +52,16 @@ class InscriptionPatientMiddleware implements MiddlewareInterface
             throw new ValidationException($exception->getFullMessage(), previous: $exception);
         }
 
-        return [
-            'nom' => trim((string)$data['nom']),
-            'prenom' => trim((string)$data['prenom']),
-            'email' => strtolower(trim((string)$data['email'])),
-            'password' => (string)$data['password'],
-            'telephone' => trim((string)$data['telephone']),
-            'date_naissance' => isset($data['date_naissance']) ? (string)$data['date_naissance'] : null,
-            'adresse' => isset($data['adresse']) ? trim((string)$data['adresse']) : null,
-            'code_postal' => isset($data['code_postal']) ? trim((string)$data['code_postal']) : null,
-            'ville' => isset($data['ville']) ? trim((string)$data['ville']) : null,
-        ];
+        return new InputPatientDTO(
+            trim((string)$data['nom']),
+            trim((string)$data['prenom']),
+            strtolower(trim((string)$data['email'])),
+            (string)$data['password'],
+            trim((string)$data['telephone']),
+            isset($data['date_naissance']) ? (string)$data['date_naissance'] : null,
+            isset($data['adresse']) ? trim((string)$data['adresse']) : null,
+            isset($data['code_postal']) ? trim((string)$data['code_postal']) : null,
+            isset($data['ville']) ? trim((string)$data['ville']) : null
+        );
     }
 }

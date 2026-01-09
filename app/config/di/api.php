@@ -18,7 +18,13 @@ use toubilib\api\actions\rdv\CreerRdvAction;
 use toubilib\api\actions\rdv\AnnulerRdvAction;
 use toubilib\api\actions\rdv\ModifierStatutRdvAction;
 use toubilib\api\middlewares\AuthenticatedMiddleware;
-use toubilib\api\middlewares\AuthorizationMiddleware;
+use toubilib\api\middlewares\CanAccessAgendaMiddleware;
+use toubilib\api\middlewares\CanCancelRdvMiddleware;
+use toubilib\api\middlewares\CanCreateRdvMiddleware;
+use toubilib\api\middlewares\CanManageIndisponibiliteMiddleware;
+use toubilib\api\middlewares\CanUpdateRdvStatusMiddleware;
+use toubilib\api\middlewares\CanViewPatientHistoryMiddleware;
+use toubilib\api\middlewares\CanViewRdvMiddleware;
 use toubilib\api\middlewares\CorsMiddleware;
 use toubilib\api\middlewares\CreateRendezVousMiddleware;
 use toubilib\api\middlewares\CreateIndisponibiliteMiddleware;
@@ -57,16 +63,10 @@ return [
         return new ListerAgendaAction($c->get(ServiceRDVInterface::class));
     },
     CreerRdvAction::class => function (ContainerInterface $c): CreerRdvAction {
-        return new CreerRdvAction(
-            $c->get(ServiceRDVInterface::class),
-            $c->get(AuthorizationServiceInterface::class)
-        );
+        return new CreerRdvAction($c->get(ServiceRDVInterface::class));
     },
     AnnulerRdvAction::class => function (ContainerInterface $c): AnnulerRdvAction {
-        return new AnnulerRdvAction(
-            $c->get(ServiceRDVInterface::class),
-            $c->get(AuthorizationServiceInterface::class)
-        );
+        return new AnnulerRdvAction($c->get(ServiceRDVInterface::class));
     },
     ModifierStatutRdvAction::class => function (ContainerInterface $c): ModifierStatutRdvAction {
         return new ModifierStatutRdvAction($c->get(ServiceRDVInterface::class));
@@ -79,6 +79,27 @@ return [
     },
     InscriptionPatientMiddleware::class => function (): InscriptionPatientMiddleware {
         return new InscriptionPatientMiddleware();
+    },
+    CanAccessAgendaMiddleware::class => function (ContainerInterface $c): CanAccessAgendaMiddleware {
+        return new CanAccessAgendaMiddleware($c->get(AuthorizationServiceInterface::class));
+    },
+    CanViewPatientHistoryMiddleware::class => function (ContainerInterface $c): CanViewPatientHistoryMiddleware {
+        return new CanViewPatientHistoryMiddleware($c->get(AuthorizationServiceInterface::class));
+    },
+    CanManageIndisponibiliteMiddleware::class => function (ContainerInterface $c): CanManageIndisponibiliteMiddleware {
+        return new CanManageIndisponibiliteMiddleware($c->get(AuthorizationServiceInterface::class));
+    },
+    CanViewRdvMiddleware::class => function (ContainerInterface $c): CanViewRdvMiddleware {
+        return new CanViewRdvMiddleware($c->get(AuthorizationServiceInterface::class));
+    },
+    CanCreateRdvMiddleware::class => function (ContainerInterface $c): CanCreateRdvMiddleware {
+        return new CanCreateRdvMiddleware($c->get(AuthorizationServiceInterface::class));
+    },
+    CanCancelRdvMiddleware::class => function (ContainerInterface $c): CanCancelRdvMiddleware {
+        return new CanCancelRdvMiddleware($c->get(AuthorizationServiceInterface::class));
+    },
+    CanUpdateRdvStatusMiddleware::class => function (ContainerInterface $c): CanUpdateRdvStatusMiddleware {
+        return new CanUpdateRdvStatusMiddleware($c->get(AuthorizationServiceInterface::class));
     },
     ListerHistoriquePatientAction::class => function (ContainerInterface $c): ListerHistoriquePatientAction {
         return new ListerHistoriquePatientAction($c->get(ServicePatientInterface::class));
@@ -113,19 +134,10 @@ return [
         );
     },
     AuthenticatedMiddleware::class => function (ContainerInterface $c): AuthenticatedMiddleware {
-        return new AuthenticatedMiddleware(
-            $c->get(JwtManagerInterface::class),
-            $c->get(ServiceAuthInterface::class)
-        );
+        return new AuthenticatedMiddleware($c->get(AuthProviderInterface::class));
     },
     OptionalAuthMiddleware::class => function (ContainerInterface $c): OptionalAuthMiddleware {
-        return new OptionalAuthMiddleware(
-            $c->get(JwtManagerInterface::class),
-            $c->get(ServiceAuthInterface::class)
-        );
-    },
-    AuthorizationMiddleware::class => function (ContainerInterface $c): AuthorizationMiddleware {
-        return new AuthorizationMiddleware($c->get(AuthorizationServiceInterface::class));
+        return new OptionalAuthMiddleware($c->get(AuthProviderInterface::class));
     },
     CorsMiddleware::class => function (ContainerInterface $c): CorsMiddleware {
         return new CorsMiddleware($c->get('cors'));

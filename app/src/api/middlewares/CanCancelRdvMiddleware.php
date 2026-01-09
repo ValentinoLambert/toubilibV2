@@ -17,10 +17,8 @@ use toubilib\core\application\exceptions\AuthorizationException;
 use toubilib\core\application\exceptions\ResourceNotFoundException;
 use toubilib\core\application\usecases\AuthorizationServiceInterface;
 
-class AuthorizationMiddleware implements MiddlewareInterface
+class CanCancelRdvMiddleware implements MiddlewareInterface
 {
-    public const ATTRIBUTE_RDV = 'rdv.dto';
-
     private AuthorizationServiceInterface $authorizationService;
 
     public function __construct(AuthorizationServiceInterface $authorizationService)
@@ -35,39 +33,13 @@ class AuthorizationMiddleware implements MiddlewareInterface
             throw new HttpInternalServerErrorException($request, 'Route introuvable pour le contrôle d\'autorisation.');
         }
 
-        /** @var UserDTO|null $user */
         $user = $request->getAttribute(AuthenticatedMiddleware::ATTRIBUTE_USER);
-        if ($user === null) {
+        if (!$user instanceof UserDTO) {
             throw new HttpUnauthorizedException($request, 'Authentification requise.');
         }
 
         try {
-            $name = $route->getName();
-            switch ($name) {
-                case 'praticiens.agenda':
-                    $this->authorizationService->assertCanAccessAgenda($user, $route->getArgument('id'));
-                    break;
-                case 'rdv.detail':
-                    $rdv = $this->authorizationService->assertCanViewRdv($user, $route->getArgument('id'));
-                    $request = $request->withAttribute(self::ATTRIBUTE_RDV, $rdv);
-                    break;
-                case 'rdv.cancel':
-                    $this->authorizationService->assertCanCancelRdv($user, $route->getArgument('id'));
-                    break;
-                case 'rdv.update_status':
-                    $this->authorizationService->assertCanUpdateRdvStatus($user, $route->getArgument('id'));
-                    break;
-                case 'patients.historique':
-                    $this->authorizationService->assertCanViewPatientHistory($user, $route->getArgument('id'));
-                    break;
-                case 'praticiens.indisponibilites.list':
-                case 'praticiens.indisponibilites.create':
-                case 'praticiens.indisponibilites.delete':
-                    $this->authorizationService->assertCanManageIndisponibilite($user, $route->getArgument('id'));
-                    break;
-                default:
-                    break;
-            }
+            $this->authorizationService->assertCanCancelRdv($user, $route->getArgument('id'));
         } catch (AuthorizationException $exception) {
             throw new HttpForbiddenException($request, $exception->getMessage(), $exception);
         } catch (ResourceNotFoundException $exception) {

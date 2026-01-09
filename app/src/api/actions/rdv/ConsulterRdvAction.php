@@ -11,7 +11,7 @@ use Slim\Exception\HttpInternalServerErrorException;
 use Slim\Exception\HttpNotFoundException;
 use Throwable;
 use toubilib\api\actions\AbstractAction;
-use toubilib\api\middlewares\AuthorizationMiddleware;
+use toubilib\api\middlewares\CanViewRdvMiddleware;
 use toubilib\core\application\exceptions\ApplicationException;
 use toubilib\core\application\exceptions\ResourceNotFoundException;
 use toubilib\core\application\usecases\ServiceRDVInterface;
@@ -35,7 +35,7 @@ class ConsulterRdvAction extends AbstractAction
 
         try {
             /** @var \toubilib\core\application\dto\RdvDTO|null $preloaded */
-            $preloaded = $request->getAttribute(AuthorizationMiddleware::ATTRIBUTE_RDV);
+            $preloaded = $request->getAttribute(CanViewRdvMiddleware::ATTRIBUTE_RDV);
             $dto = $preloaded instanceof \toubilib\core\application\dto\RdvDTO
                 ? $preloaded
                 : $this->service->consulterRdv($id);

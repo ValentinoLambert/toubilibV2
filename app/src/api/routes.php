@@ -17,7 +17,13 @@ use toubilib\api\actions\rdv\CreerRdvAction;
 use toubilib\api\actions\rdv\AnnulerRdvAction;
 use toubilib\api\actions\rdv\ModifierStatutRdvAction;
 use toubilib\api\middlewares\AuthenticatedMiddleware;
-use toubilib\api\middlewares\AuthorizationMiddleware;
+use toubilib\api\middlewares\CanAccessAgendaMiddleware;
+use toubilib\api\middlewares\CanCancelRdvMiddleware;
+use toubilib\api\middlewares\CanCreateRdvMiddleware;
+use toubilib\api\middlewares\CanManageIndisponibiliteMiddleware;
+use toubilib\api\middlewares\CanUpdateRdvStatusMiddleware;
+use toubilib\api\middlewares\CanViewPatientHistoryMiddleware;
+use toubilib\api\middlewares\CanViewRdvMiddleware;
 use toubilib\api\middlewares\CreateRendezVousMiddleware;
 use toubilib\api\middlewares\CreateIndisponibiliteMiddleware;
 use toubilib\api\middlewares\InscriptionPatientMiddleware;
@@ -37,7 +43,7 @@ return function( \Slim\App $app):\Slim\App {
 
     $app->get('/patients/{id}/historique', ListerHistoriquePatientAction::class)
         ->setName('patients.historique')
-        ->add(AuthorizationMiddleware::class)
+        ->add(CanViewPatientHistoryMiddleware::class)
         ->add(new RequireRoleMiddleware(['patient', 'admin']))
         ->add(AuthenticatedMiddleware::class);
 
@@ -55,48 +61,49 @@ return function( \Slim\App $app):\Slim\App {
 
     $app->get('/praticiens/{id}/agenda', ListerAgendaAction::class)
         ->setName('praticiens.agenda')
-        ->add(AuthorizationMiddleware::class)
+        ->add(CanAccessAgendaMiddleware::class)
         ->add(AuthenticatedMiddleware::class);
 
     $app->get('/praticiens/{id}/indisponibilites', ListerIndisponibilitesAction::class)
         ->setName('praticiens.indisponibilites.list')
-        ->add(AuthorizationMiddleware::class)
+        ->add(CanManageIndisponibiliteMiddleware::class)
         ->add(new RequireRoleMiddleware(['admin', 'praticien']))
         ->add(AuthenticatedMiddleware::class);
 
     $app->post('/praticiens/{id}/indisponibilites', CreerIndisponibiliteAction::class)
         ->setName('praticiens.indisponibilites.create')
-        ->add(AuthorizationMiddleware::class)
+        ->add(CanManageIndisponibiliteMiddleware::class)
         ->add(new RequireRoleMiddleware(['admin', 'praticien']))
         ->add(AuthenticatedMiddleware::class)
         ->add(CreateIndisponibiliteMiddleware::class);
 
     $app->delete('/praticiens/{id}/indisponibilites/{indispoId}', SupprimerIndisponibiliteAction::class)
         ->setName('praticiens.indisponibilites.delete')
-        ->add(AuthorizationMiddleware::class)
+        ->add(CanManageIndisponibiliteMiddleware::class)
         ->add(new RequireRoleMiddleware(['admin', 'praticien']))
         ->add(AuthenticatedMiddleware::class);
 
     $app->get('/rdv/{id}', ConsulterRdvAction::class)
         ->setName('rdv.detail')
-        ->add(AuthorizationMiddleware::class)
+        ->add(CanViewRdvMiddleware::class)
         ->add(AuthenticatedMiddleware::class);
 
     $app->post('/rdv', CreerRdvAction::class)
         ->setName('rdv.create')
+        ->add(CanCreateRdvMiddleware::class)
         ->add(new RequireRoleMiddleware(['patient']))
         ->add(AuthenticatedMiddleware::class)
         ->add(CreateRendezVousMiddleware::class);
 
     $app->delete('/rdv/{id}', AnnulerRdvAction::class)
         ->setName('rdv.cancel')
-        ->add(AuthorizationMiddleware::class)
+        ->add(CanCancelRdvMiddleware::class)
         ->add(new RequireRoleMiddleware(['admin', 'praticien', 'patient']))
         ->add(AuthenticatedMiddleware::class);
 
     $app->patch('/rdv/{id}', ModifierStatutRdvAction::class)
         ->setName('rdv.update_status')
-        ->add(AuthorizationMiddleware::class)
+        ->add(CanUpdateRdvStatusMiddleware::class)
         ->add(new RequireRoleMiddleware(['admin', 'praticien']))
         ->add(AuthenticatedMiddleware::class);
 

@@ -30,22 +30,10 @@ class InscrirePatientAction extends AbstractAction
 
     public function __invoke(Request $request, Response $response): Response
     {
-        $payload = $request->getAttribute(InscriptionPatientMiddleware::ATTRIBUTE_PAYLOAD);
-        if (!is_array($payload)) {
+        $dto = $request->getAttribute(InscriptionPatientMiddleware::ATTRIBUTE_DTO);
+        if (!$dto instanceof InputPatientDTO) {
             throw new HttpBadRequestException($request, 'Données d\'inscription manquantes.');
         }
-
-        $dto = new InputPatientDTO(
-            $payload['nom'],
-            $payload['prenom'],
-            $payload['email'],
-            $payload['password'],
-            $payload['telephone'],
-            $payload['date_naissance'] ?? null,
-            $payload['adresse'] ?? null,
-            $payload['code_postal'] ?? null,
-            $payload['ville'] ?? null
-        );
 
         try {
             $patient = $this->service->inscrirePatient($dto);

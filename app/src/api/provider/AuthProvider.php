@@ -5,6 +5,7 @@ namespace toubilib\api\provider;
 
 use toubilib\api\dto\AuthTokensDTO;
 use toubilib\api\security\JwtManagerInterface;
+use toubilib\core\application\dto\UserDTO;
 use toubilib\core\application\usecases\ServiceAuthInterface;
 
 class AuthProvider implements AuthProviderInterface
@@ -29,5 +30,12 @@ class AuthProvider implements AuthProviderInterface
             $this->jwtManager->getAccessTokenTtl(),
             $this->jwtManager->getRefreshTokenTtl()
         );
+    }
+
+    public function authenticateAccessToken(string $token): UserDTO
+    {
+        $payload = $this->jwtManager->decode($token, 'access');
+
+        return $this->authService->getUserById($payload->subject);
     }
 }
