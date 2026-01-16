@@ -65,7 +65,10 @@ return [
         );
     },
     AuthenticatedMiddleware::class => function (ContainerInterface $c): AuthenticatedMiddleware {
-        return new AuthenticatedMiddleware($c->get(AuthProviderInterface::class));
+        return new AuthenticatedMiddleware(
+            $c->get(AuthProviderInterface::class),
+            (string)$c->get('internal_token')
+        );
     },
     OptionalAuthMiddleware::class => function (ContainerInterface $c): OptionalAuthMiddleware {
         return new OptionalAuthMiddleware($c->get(AuthProviderInterface::class));

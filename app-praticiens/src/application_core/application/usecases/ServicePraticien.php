@@ -44,6 +44,7 @@ class ServicePraticien implements ServicePraticienInterface
         $structure = null;
         if ($detail->structure) {
             $structure = [
+                'id' => $detail->structure->id,
                 'nom' => $detail->structure->nom,
                 'adresse' => $detail->structure->adresse,
                 'ville' => $detail->structure->ville,
@@ -53,7 +54,9 @@ class ServicePraticien implements ServicePraticienInterface
         }
 
         $motifs = array_map(fn($m) => $m->libelle, $detail->motifs);
+        $motifsDetails = array_map(fn($m) => ['id' => $m->id, 'libelle' => $m->libelle], $detail->motifs);
         $moyens = array_map(fn($m) => $m->libelle, $detail->moyens);
+        $moyensDetails = array_map(fn($m) => ['id' => $m->id, 'libelle' => $m->libelle], $detail->moyens);
 
         return new PraticienDetailDTO(
             $detail->id,
@@ -65,7 +68,9 @@ class ServicePraticien implements ServicePraticienInterface
             $detail->specialite->libelle,
             $structure,
             $motifs,
-            $moyens
+            $moyens,
+            $motifsDetails,
+            $moyensDetails
         );
     }
 }

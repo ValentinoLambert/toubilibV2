@@ -4,6 +4,9 @@ return [
     // App settings
     'displayErrorDetails' => (bool)($_ENV['APP_DEBUG'] ?? true),
 
+    // Internal service token for inter-service calls
+    'internal_token' => $_ENV['INTERNAL_SERVICE_TOKEN'] ?? 'toubilib-internal',
+
     // Database settings for practitioners DB
     'db.prat' => [
         'host' => $_ENV['prat.host'] ?? $_ENV['PRAT_DB_HOST'] ?? 'toubiprati.db',

@@ -14,8 +14,12 @@ class PraticienDetailDTO implements \JsonSerializable
     public ?array $structure; // ['nom','adresse','ville','code_postal','telephone']
     /** @var string[] */
     public array $motifs;
+    /** @var array[] */
+    public array $motifs_details;
     /** @var string[] */
     public array $moyens;
+    /** @var array[] */
+    public array $moyens_details;
 
     public function __construct(
         string $id,
@@ -27,7 +31,9 @@ class PraticienDetailDTO implements \JsonSerializable
         string $specialite,
         ?array $structure,
         array $motifs,
-        array $moyens
+        array $moyens,
+        array $motifs_details = [],
+        array $moyens_details = []
     ) {
         $this->id = $id;
         $this->nom = $nom;
@@ -38,7 +44,9 @@ class PraticienDetailDTO implements \JsonSerializable
         $this->specialite = $specialite;
         $this->structure = $structure;
         $this->motifs = $motifs;
+        $this->motifs_details = $motifs_details;
         $this->moyens = $moyens;
+        $this->moyens_details = $moyens_details;
     }
 
     public function jsonSerialize(): array
@@ -53,8 +61,9 @@ class PraticienDetailDTO implements \JsonSerializable
             'specialite' => $this->specialite,
             'structure' => $this->structure,
             'motifs' => $this->motifs,
+            'motifs_details' => $this->motifs_details,
             'moyens' => $this->moyens,
+            'moyens_details' => $this->moyens_details,
         ];
     }
 }
-

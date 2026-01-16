@@ -7,7 +7,6 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
-use Slim\Exception\HttpNotFoundException;
 
 class ProxyAction
 {
@@ -21,18 +20,61 @@ class ProxyAction
     public function __invoke(Request $request, Response $response): Response
     {
         $path = $request->getUri()->getPath();
+        $method = $request->getMethod();
+        $options = [
+            'headers' => $this->filterHeaders($request->getHeaders()),
+        ];
+        $query = $request->getQueryParams();
+        if (!empty($query)) {
+            $options['query'] = $query;
+        }
+        $body = (string)$request->getBody();
+        if ($body !== '') {
+            $options['body'] = $body;
+        }
         
         try {
-            $responseToubilib = $this->client->get($path);
+            $responseToubilib = $this->client->request($method, $path, $options);
             $response->getBody()->write($responseToubilib->getBody()->getContents());
-            return $response
-                ->withStatus($responseToubilib->getStatusCode())
-                ->withHeader('Content-Type', 'application/json');
+            return $this->withUpstreamHeaders($response, $responseToubilib);
         } catch (ClientException $e) {
-            if ($e->getResponse()->getStatusCode() === 404) {
-                throw new HttpNotFoundException($request);
+            $upstream = $e->getResponse();
+            if ($upstream === null) {
+                throw $e;
             }
-            throw $e;
+            $response->getBody()->write($upstream->getBody()->getContents());
+            return $this->withUpstreamHeaders($response, $upstream);
         }
+    }
+
+    /**
+     * @param array<string, array<int, string>> $headers
+     * @return array<string, array<int, string>>
+     */
+    private function filterHeaders(array $headers): array
+    {
+        $blocked = ['host', 'content-length'];
+        $filtered = [];
+        foreach ($headers as $name => $values) {
+            if (in_array(strtolower($name), $blocked, true)) {
+                continue;
+            }
+            $filtered[$name] = $values;
+        }
+        return $filtered;
+    }
+
+    private function withUpstreamHeaders(Response $response, Response $upstream): Response
+    {
+        $response = $response->withStatus($upstream->getStatusCode());
+        $contentType = $upstream->getHeaderLine('Content-Type');
+        if ($contentType !== '') {
+            $response = $response->withHeader('Content-Type', $contentType);
+        }
+        $location = $upstream->getHeaderLine('Location');
+        if ($location !== '') {
+            $response = $response->withHeader('Location', $location);
+        }
+        return $response;
     }
 }

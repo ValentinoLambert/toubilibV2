@@ -37,6 +37,8 @@ services:
       - toubilib.net
     depends_on:
       - api.toubilib
+      - app-praticiens
+      - app-rdv
     command: sh -c "composer install && php -S 0.0.0.0:80 -t /var/php/public"
 
   # service app-praticiens : microservice praticiens
@@ -58,6 +60,25 @@ services:
       - toubirdv.db
     command: sh -c "composer install && php -S 0.0.0.0:80 -t /var/php/public"
     # service toubiprat.db : base de données postgresql pour les praticiens
+
+  # service app-rdv : microservice rendez-vous
+  app-rdv:
+    build:
+      context: build
+      dockerfile: 8.4-cli.Dockerfile
+    ports:
+      - '6083:80'
+    volumes:
+      - ./app-rdv:/var/php
+    working_dir: /var/php
+    networks:
+      - toubilib.net
+    depends_on:
+      - toubirdv.db
+      - toubipatient.db
+      - toubiauth.db
+      - app-praticiens
+    command: sh -c "composer install && php -S 0.0.0.0:80 -t /var/php/public"
 
   toubiprati.db:
     image: 'postgres:latest'
