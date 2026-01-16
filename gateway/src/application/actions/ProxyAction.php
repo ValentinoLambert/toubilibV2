@@ -7,20 +7,27 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\ClientException;
+use Psr\Container\ContainerInterface;
 
 class ProxyAction
 {
-    private Client $client;
+    private ContainerInterface $container;
 
-    public function __construct(Client $client)
+    public function __construct(ContainerInterface $container)
     {
-        $this->client = $client;
+        $this->container = $container;
     }
 
     public function __invoke(Request $request, Response $response): Response
     {
         $path = $request->getUri()->getPath();
         $method = $request->getMethod();
+        
+        // Router vers le bon microservice
+        $client = str_starts_with($path, '/auth') 
+            ? $this->container->get('auth.client')
+            : $this->container->get('api.client');
+        
         $options = [
             'headers' => $this->filterHeaders($request->getHeaders()),
         ];
@@ -34,7 +41,7 @@ class ProxyAction
         }
         
         try {
-            $responseToubilib = $this->client->request($method, $path, $options);
+            $responseToubilib = $client->request($method, $path, $options);
             $response->getBody()->write($responseToubilib->getBody()->getContents());
             return $this->withUpstreamHeaders($response, $responseToubilib);
         } catch (ClientException $e) {

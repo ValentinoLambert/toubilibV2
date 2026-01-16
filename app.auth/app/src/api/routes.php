@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+use toubilib\api\actions\auth\LoginAction;
+use toubilib\api\actions\auth\MeAction;
 use toubilib\api\actions\praticien\ListerPraticiensAction;
 use toubilib\api\actions\praticien\AfficherPraticienAction;
 use toubilib\api\actions\praticien\ListerCreneauxOccupesAction;
@@ -29,6 +31,12 @@ use toubilib\api\middlewares\OptionalAuthMiddleware;
 use toubilib\api\middlewares\RequireRoleMiddleware;
 
 return function( \Slim\App $app):\Slim\App {
+    $app->post('/auth/login', LoginAction::class)
+        ->setName('auth.login');
+    $app->get('/auth/me', MeAction::class)
+        ->setName('auth.me')
+        ->add(AuthenticatedMiddleware::class);
+
     $app->post('/patients', InscrirePatientAction::class)
         ->setName('patients.inscrire')
         ->add(InscriptionPatientMiddleware::class);
