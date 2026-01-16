@@ -1,6 +1,9 @@
 <?php
 declare(strict_types=1);
 
+use toubilib\api\actions\auth\LoginAction;
+use toubilib\api\actions\auth\RefreshAction;
+use toubilib\api\actions\auth\MeAction;
 use toubilib\api\actions\praticien\ListerPraticiensAction;
 use toubilib\api\actions\praticien\AfficherPraticienAction;
 use toubilib\api\actions\praticien\ListerCreneauxOccupesAction;
@@ -79,6 +82,17 @@ return function( \Slim\App $app):\Slim\App {
         ->setName('rdv.detail')
         ->add(CanViewRdvMiddleware::class)
         ->add(AuthenticatedMiddleware::class);
+
+    $app->post('/auth/login', LoginAction::class)->setName('auth.login');
+    // Aliases for Gateway compliance
+    $app->post('/auth/signin', LoginAction::class)->setName('auth.signin');
+    $app->post('/auth/register', InscrirePatientAction::class)->setName('auth.register');
+    $app->post('/auth/refresh', RefreshAction::class)->setName('auth.refresh');
+
+    $app->get('/auth/me', MeAction::class)
+        ->add(new RequireRoleMiddleware(['patient']))
+        ->add(AuthenticatedMiddleware::class)
+        ->add(CreateRendezVousMiddleware::class);
 
     $app->post('/rdv', CreerRdvAction::class)
         ->setName('rdv.create')

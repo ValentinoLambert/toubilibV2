@@ -23,6 +23,24 @@ services:
       - toubirdv.db
     command: sh -c "composer install && php -S 0.0.0.0:80 -t /var/php/public"
 
+  # service app.auth : microservice authentification
+  app.auth:
+    build:
+      context: build
+      dockerfile: 8.4-cli.Dockerfile
+    ports:
+      - '6086:80'
+    volumes:
+      - ./app.auth:/var/php
+    working_dir: /var/php
+    networks:
+      toubilib.net:
+        aliases:
+          - app.auth
+    depends_on:
+      - toubiauth.db
+    command: sh -c "composer install && php -S 0.0.0.0:80 -t /var/php/public"
+
   # service gateway : api gateway
   gateway.toubilib:
     build:
@@ -62,7 +80,7 @@ services:
     command: sh -c "composer install && php -S 0.0.0.0:80 -t /var/php/public"
     # service toubiprat.db : base de données postgresql pour les praticiens
 
-  # service app-rdv : microservice rendez-vous
+    # service app-rdv : microservice rendez-vous
   app-rdv:
     build:
       context: build
@@ -79,22 +97,6 @@ services:
       - toubipatient.db
       - toubiauth.db
       - app-praticiens
-    command: sh -c "composer install && php -S 0.0.0.0:80 -t /var/php/public"
-
-  # service app.auth : microservice authentification
-  app.auth:
-    build:
-      context: build
-      dockerfile: 8.4-cli.Dockerfile
-    ports:
-      - '6084:80'
-    volumes:
-      - ./app.auth:/var/php
-    working_dir: /var/php
-    networks:
-      - toubilib.net
-    depends_on:
-      - toubiauth.db
     command: sh -c "composer install && php -S 0.0.0.0:80 -t /var/php/public"
 
   toubiprati.db:
@@ -149,6 +151,6 @@ services:
   adminer:
     image: adminer
     ports:
-      - '8080:8080'
+      - '8083:8080'
     networks:
       - toubilib.net

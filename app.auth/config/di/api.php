@@ -47,6 +47,9 @@ return [
     MeAction::class => function (): MeAction {
         return new MeAction();
     },
+    \toubilib\api\actions\auth\ValidateTokenAction::class => function (ContainerInterface $c): \toubilib\api\actions\auth\ValidateTokenAction {
+        return new \toubilib\api\actions\auth\ValidateTokenAction($c->get(JwtManagerInterface::class));
+    },
     ListerPraticiensAction::class => function (ContainerInterface $c): ListerPraticiensAction {
         return new ListerPraticiensAction($c->get(ServicePraticienInterface::class));
     },

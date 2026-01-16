@@ -4,12 +4,12 @@ FROM php:8.4-cli
 # basic update
 RUN apt-get update && \
     apt-get install --yes --force-yes \
-    cron openssl
+    openssl
 
 # installing the docker php extensions installer
 RUN curl -sSLf \
-        -o /usr/local/bin/install-php-extensions \
-        https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions && \
+    -o /usr/local/bin/install-php-extensions \
+    https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions && \
     chmod +x /usr/local/bin/install-php-extensions
 
 # PHP Configuration
