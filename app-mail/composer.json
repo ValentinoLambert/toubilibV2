@@ -1,0 +1,14 @@
+{
+    "name": "toubilib/app-mail",
+    "description": "Microservice d'envoi de mail pour Toubilib",
+    "type": "project",
+    "require": {
+        "php": "^8.4",
+        "php-amqplib/php-amqplib": "^3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "toubilib\\mail\\": "src/"
+        }
+    }
+}
