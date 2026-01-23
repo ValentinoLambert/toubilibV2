@@ -145,6 +145,32 @@ services:
       - ./sql/toubiauth.schema.sql:/docker-entrypoint-initdb.d/10_schema.sql:ro
       - ./sql/toubiauth.data.sql:/docker-entrypoint-initdb.d/20_data.sql:ro
 
+  # service rabbitmq
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - '5672:5672'   # Port AMQP
+      - '15672:15672' # Port interface 
+    networks:
+      - toubilib.net
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+
+  # service app-mail
+  app-mail:
+    build:
+      context: build
+      dockerfile: 8.4-cli.Dockerfile
+    volumes:
+      - ./app-mail:/var/php
+    working_dir: /var/php
+    networks:
+      - toubilib.net
+    depends_on:
+      - rabbitmq
+    command: sh -c "composer install && php /var/php/src/consumer.php"
+
   #
   # service administration des bases sql
   #
