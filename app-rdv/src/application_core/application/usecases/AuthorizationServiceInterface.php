@@ -23,7 +23,7 @@ interface AuthorizationServiceInterface
      *
      * @throws AuthorizationException
      */
-    public function assertCanCreateRdv(UserDTO $user, string $patientId): void;
+    public function assertCanCreateRdv(UserDTO $user, string $patientId, string $praticienId): void;
 
     /**
      * Vérifie qu'un utilisateur peut annuler un rendez-vous.

@@ -8,20 +8,11 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface as Handler;
 use Slim\Exception\HttpUnauthorizedException;
-use toubilib\api\provider\AuthProviderInterface;
-use toubilib\api\security\InvalidTokenException;
-use toubilib\core\domain\exceptions\UserNotFoundException;
+use toubilib\core\application\dto\UserDTO;
 
 class AuthenticatedMiddleware implements MiddlewareInterface
 {
     public const ATTRIBUTE_USER = 'auth.user';
-
-    private AuthProviderInterface $authProvider;
-
-    public function __construct(AuthProviderInterface $authProvider)
-    {
-        $this->authProvider = $authProvider;
-    }
 
     public function process(Request $request, Handler $handler): Response
     {
@@ -32,13 +23,48 @@ class AuthenticatedMiddleware implements MiddlewareInterface
 
         $token = $matches[1];
 
-        try {
-            $user = $this->authProvider->authenticateAccessToken($token);
-        } catch (InvalidTokenException|UserNotFoundException $exception) {
-            throw new HttpUnauthorizedException($request, 'Jeton invalide ou expiré.', $exception);
-        }
+        $payload = $this->decodeTokenPayload($request, $token);
+        $user = new UserDTO(
+            (string)$payload['sub'],
+            (string)($payload['email'] ?? ''),
+            (int)$payload['role']
+        );
 
         $request = $request->withAttribute(self::ATTRIBUTE_USER, $user);
         return $handler->handle($request);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function decodeTokenPayload(Request $request, string $token): array
+    {
+        $parts = explode('.', $token);
+        if (count($parts) !== 3) {
+            throw new HttpUnauthorizedException($request, 'Jeton invalide.');
+        }
+
+        $payloadJson = $this->base64UrlDecode($parts[1]);
+        if ($payloadJson === null) {
+            throw new HttpUnauthorizedException($request, 'Jeton invalide.');
+        }
+
+        $payload = json_decode($payloadJson, true);
+        if (!is_array($payload) || !isset($payload['sub']) || !isset($payload['role'])) {
+            throw new HttpUnauthorizedException($request, 'Jeton invalide.');
+        }
+
+        return $payload;
+    }
+
+    private function base64UrlDecode(string $value): ?string
+    {
+        $value = strtr($value, '-_', '+/');
+        $pad = strlen($value) % 4;
+        if ($pad > 0) {
+            $value .= str_repeat('=', 4 - $pad);
+        }
+        $decoded = base64_decode($value, true);
+        return $decoded === false ? null : $decoded;
     }
 }

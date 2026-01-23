@@ -39,7 +39,7 @@ class CanCreateRdvMiddleware implements MiddlewareInterface
         }
 
         try {
-            $this->authorizationService->assertCanCreateRdv($user, $dto->patientId);
+            $this->authorizationService->assertCanCreateRdv($user, $dto->patientId, $dto->praticienId);
         } catch (AuthorizationException $exception) {
             throw new HttpForbiddenException($request, $exception->getMessage(), $exception);
         } catch (ResourceNotFoundException $exception) {

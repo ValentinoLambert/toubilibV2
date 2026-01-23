@@ -83,8 +83,8 @@ return [
             $c->get(JwtManagerInterface::class)
         );
     },
-    AuthenticatedMiddleware::class => function (ContainerInterface $c): AuthenticatedMiddleware {
-        return new AuthenticatedMiddleware($c->get(AuthProviderInterface::class));
+    AuthenticatedMiddleware::class => function (): AuthenticatedMiddleware {
+        return new AuthenticatedMiddleware();
     },
     OptionalAuthMiddleware::class => function (ContainerInterface $c): OptionalAuthMiddleware {
         return new OptionalAuthMiddleware($c->get(AuthProviderInterface::class));

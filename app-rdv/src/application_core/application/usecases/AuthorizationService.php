@@ -19,25 +19,18 @@ class AuthorizationService implements AuthorizationServiceInterface
     public function assertCanAccessAgenda(UserDTO $user, string $praticienId): void
     {
         $role = UserRole::toString($user->role);
-        if ($role === 'admin') {
-            return;
-        }
 
         if ($role === 'praticien' && $user->id === $praticienId) {
             return;
         }
 
-        throw new AuthorizationException("Accès à l'agenda refusé.");
+        throw new AuthorizationException("AccÇùs Çÿ l'agenda refusÇ¸.");
     }
 
     public function assertCanViewRdv(UserDTO $user, string $rdvId): RdvDTO
     {
         $rdv = $this->rdvService->consulterRdv($rdvId);
         $role = UserRole::toString($user->role);
-
-        if ($role === 'admin') {
-            return $rdv;
-        }
 
         if ($role === 'praticien' && $rdv->praticien_id === $user->id) {
             return $rdv;
@@ -47,22 +40,22 @@ class AuthorizationService implements AuthorizationServiceInterface
             return $rdv;
         }
 
-        throw new AuthorizationException("Accès au rendez-vous refusé.");
+        throw new AuthorizationException("AccÇùs au rendez-vous refusÇ¸.");
     }
 
-    public function assertCanCreateRdv(UserDTO $user, string $patientId): void
+    public function assertCanCreateRdv(UserDTO $user, string $patientId, string $praticienId): void
     {
         $role = UserRole::toString($user->role);
-
-        if ($role === 'admin') {
-            return;
-        }
 
         if ($role === 'patient' && $user->id === $patientId) {
             return;
         }
 
-        throw new AuthorizationException('Création de rendez-vous refusée pour cet utilisateur.');
+        if ($role === 'praticien' && $user->id === $praticienId) {
+            return;
+        }
+
+        throw new AuthorizationException('CrÇ¸ation de rendez-vous refusÇ¸e pour cet utilisateur.');
     }
 
     public function assertCanCancelRdv(UserDTO $user, string $rdvId): RdvDTO
@@ -82,7 +75,7 @@ class AuthorizationService implements AuthorizationServiceInterface
             return $rdv;
         }
 
-        throw new AuthorizationException("Annulation du rendez-vous refusée.");
+        throw new AuthorizationException("Annulation du rendez-vous refusÇ¸e.");
     }
 
     public function assertCanUpdateRdvStatus(UserDTO $user, string $rdvId): RdvDTO
@@ -98,6 +91,6 @@ class AuthorizationService implements AuthorizationServiceInterface
             return $rdv;
         }
 
-        throw new AuthorizationException('Modification du statut refusée.');
+        throw new AuthorizationException('Modification du statut refusÇ¸e.');
     }
 }

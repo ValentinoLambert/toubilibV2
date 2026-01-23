@@ -43,7 +43,7 @@ return function( \Slim\App $app):\Slim\App {
     $app->post('/rdv', CreerRdvAction::class)
         ->setName('rdv.create')
         ->add(CanCreateRdvMiddleware::class)
-        ->add(new RequireRoleMiddleware(['patient']))
+        ->add(new RequireRoleMiddleware(['patient', 'praticien']))
         ->add(AuthenticatedMiddleware::class)
         ->add(CreateRendezVousMiddleware::class);
 
