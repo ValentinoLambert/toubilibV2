@@ -149,27 +149,34 @@ services:
   rabbitmq:
     image: rabbitmq:3-management
     ports:
-      - '5672:5672'   # Port AMQP
-      - '15672:15672' # Port interface 
+      - '15672:15672'   # Interface web
+      - '5672:5672'     # AMQP
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 8s
+      timeout: 30s
+      retries: 3
     networks:
       - toubilib.net
+    volumes:
+      - ./rabbitmq.toubi:/var/lib/rabbitmq
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      - RABBITMQ_DEFAULT_USER=toubi
+      - RABBITMQ_DEFAULT_PASS=toubi
 
-  # service app-mail
-  app-mail:
+  ##############################################
+  ### MailCatcher
+  ##############################################
+  mail.toubi:
     build:
       context: build
-      dockerfile: 8.4-cli.Dockerfile
-    volumes:
-      - ./app-mail:/var/php
-    working_dir: /var/php
+      dockerfile: mailcatcher.Dockerfile
     networks:
       - toubilib.net
-    depends_on:
-      - rabbitmq
-    command: sh -c "composer install && php /var/php/src/consumer.php"
+    ports:
+      - '1080:1080'   # Interface web
+      - '1025:1025'   # SMTP
+
 
   #
   # service administration des bases sql
