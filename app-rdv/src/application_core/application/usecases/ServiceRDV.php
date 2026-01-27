@@ -110,6 +110,57 @@ class ServiceRDV implements ServiceRDVInterface
 
         $this->rdvRepository->save($rdv);
 
+        // --- Notification événement RDV créé
+        try {
+            $connection = new \PhpAmqpLib\Connection\AMQPStreamConnection('rabbitmq', 5672, 'toubi', 'toubi');
+            $channel = $connection->channel();
+            $exchange = 'rdv_events';
+
+            // Message pour le patient
+            $msgPatient = [
+                'event' => 'CREATE',
+                'destinataire' => [
+                    'type' => 'patient',
+                    'id' => $dto->patientId,
+                    'email' => $patient->email
+                ],
+                'rdv' => [
+                    'id' => $rdv->getId(),
+                    'praticienId' => $dto->praticienId,
+                    'patientId' => $dto->patientId,
+                    'dateHeureDebut' => $debut->format('Y-m-d H:i:s'),
+                    'dateHeureFin' => $fin->format('Y-m-d H:i:s'),
+                    'motif' => $motif
+                ]
+            ];
+            $msg = new \PhpAmqpLib\Message\AMQPMessage(json_encode($msgPatient));
+            $channel->basic_publish($msg, $exchange, 'rdv.created.patient');
+
+            // Message pour le praticien
+            $msgPraticien = [
+                'event' => 'CREATE',
+                'destinataire' => [
+                    'type' => 'praticien',
+                    'id' => $dto->praticienId
+                ],
+                'rdv' => [
+                    'id' => $rdv->getId(),
+                    'praticienId' => $dto->praticienId,
+                    'patientId' => $dto->patientId,
+                    'dateHeureDebut' => $debut->format('Y-m-d H:i:s'),
+                    'dateHeureFin' => $fin->format('Y-m-d H:i:s'),
+                    'motif' => $motif
+                ]
+            ];
+            $msg = new \PhpAmqpLib\Message\AMQPMessage(json_encode($msgPraticien));
+            $channel->basic_publish($msg, $exchange, 'rdv.created.praticien');
+
+            $channel->close();
+            $connection->close();
+        } catch (\Throwable $e) {
+    
+        }
+
         return $this->mapToDto($rdv);
     }
 
